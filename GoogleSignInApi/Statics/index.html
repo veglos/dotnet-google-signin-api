@@ -1,0 +1,64 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="google-signin-client_id" content="[google-signin-client_id].apps.googleusercontent.com">
+    <title></title>
+    <script src="https://apis.google.com/js/platform.js?onload=init" async defer></script>
+</head>
+<body>
+    <div class="g-signin2" data-onsuccess="onSignIn"></div>
+    <button onclick="signOut()">Sign Out</button>
+
+    <script type="text/javascript">
+
+        function onLoad() {
+            console.log("onLoad()");
+            gapi.load('auth2', function () {
+                gapi.auth2.init();
+            });
+        }
+
+        function signOut() {
+            console.log("signOut()");
+            var auth2 = gapi.auth2.getAuthInstance();
+            auth2.signOut().then(function () {
+                auth2.disconnect();
+
+                fetch('http://localhost:5000/api/Access/signout-google', {
+                    method: 'POST',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: null
+                })
+                    .then(response => response.json())
+                    .then(data => console.log(data))
+                    .catch(error => console.error('Unable to proccess the request', error));
+            });
+
+        }
+
+        function onSignIn(googleUser) {
+
+            const item = {
+                idToken: googleUser.getAuthResponse().id_token
+            };
+
+            fetch('http://localhost:5000/api/Access/signin-google', {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(item)
+            })
+            .then(response => response.json())
+            .then(data => console.log(data))
+            .catch(error => console.error('Unable to proccess the request', error));
+        }
+    </script>
+</body>
+
+</html>
