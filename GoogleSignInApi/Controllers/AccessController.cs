@@ -2,6 +2,7 @@
 using GoogleSignInApi.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using System;
 using System.Threading.Tasks;
 
@@ -12,6 +13,13 @@ namespace GoogleSignInApi.Controllers
     [ApiController]
     public class AccessController : ControllerBase
     {
+        private readonly IOptions<AppSettings> _settings;
+
+        public AccessController(IOptions<AppSettings> settings)
+        {
+            _settings = settings;
+        }
+
         [AllowAnonymous]
         [HttpPost]
         [Route("signin-google")]
@@ -21,7 +29,7 @@ namespace GoogleSignInApi.Controllers
             {
                 var validationSettings = new GoogleJsonWebSignature.ValidationSettings
                 {
-                    Audience = new string[] { "[google-signin-client_id].apps.googleusercontent.com" }
+                    Audience = new string[] { _settings.Value.GoogleSettings.ClientID }
                 };
 
                 var token = request.IdToken;
@@ -35,7 +43,7 @@ namespace GoogleSignInApi.Controllers
             {
                 return $"ERROR: InvalidJwt - {ex.Message}";
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 return $"ERROR: {ex.Message}";
             }
@@ -44,7 +52,7 @@ namespace GoogleSignInApi.Controllers
         [AllowAnonymous]
         [HttpPost]
         [Route("signout-google")]
-        public async Task<string> SignOutGoogle()
+        public async Task<string> SignOutGoogle() //should actually receive a request with the access token and the user Id.
         {
             try
             {
